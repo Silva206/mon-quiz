@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jeu de Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 90%;
+      max-width: 600px;
+      margin: 20px auto;
+      display: none; /* Le quiz est caché au début */
+    }
+    .question {
+      font-size: 1.2em;
+    }
+    .option {
+      display: block;
+      margin: 10px 0;
+    }
+    #result {
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    #score {
+      font-size: 1.2em;
+      color: #007bff;
+      margin-top: 10px;
+    }
+    #language-selector {
+      margin-bottom: 20px;
+    }
+    /* Styles pour l'animation de bienvenue */
+    #welcome {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      color: #007bff;
+      opacity: 1;
+      transition: opacity 1s ease;
+      animation: fadeOut 3s forwards;
+    }
+
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animation de bienvenue -->
+  <div id="welcome">Bienvenue au Quiz !</div>
+
+  <!-- Contenu du quiz -->
+  <div class="container">
+    <h1 id="title">Quiz de culture générale</h1>
+    <div id="language-selector">
+      <label for="language">Choisir la langue :</label>
+      <select id="language" onchange="changeLanguage()">
+        <option value="fr">Français</option>
+        <option value="ln">Lingala</option>
+      </select>
+    </div>
+    <div class="question" id="question">Question ici</div>
+    <div>
+      <button class="option" onclick="playSound(); checkAnswer(0)" id="option0">Option 1</button>
+      <button class="option" onclick="playSound(); checkAnswer(1)" id="option1">Option 2</button>
+      <button class="option" onclick="playSound(); checkAnswer(2)" id="option2">Option 3</button>
+      <button class="option" onclick="playSound(); checkAnswer(3)" id="option3">Option 4</button>
+    </div>
+    <div id="result"></div>
+    <div id="score">Score: 0</div>
+    <button onclick="nextQuestion()" id="next-question">Question suivante</button>
+  </div>
+
+  <!-- Son pour les clics -->
+  <audio id="click-sound" src="Bolingo.mp3" preload="auto"></audio>
+
+  <script>
+    const questions = {
+      fr: [
+        {
+          question: "Quelle est la capitale de la France ?",
+          options: ["Berlin", "Madrid", "Paris", "Lisbonne"],
+          answer: 2
+        },
+        {
+          question: "Combien y a-t-il de continents ?",
+          options: ["5", "6", "7", "8"],
+          answer: 2
+        },
+        {
+          question: "Qui a écrit 'Les Misérables' ?",
+          options: ["Victor Hugo", "Albert Camus", "Émile Zola", "Jean-Paul Sartre"],
+          answer: 0
+        }
+      ],
+      ln: [
+        {
+          question: "Engumba nini ezali mokonzi ya France ?",
+          options: ["Berlin", "Madrid", "Paris", "Lisbonne"],
+          answer: 2
+        },
+        {
+          question: "Ba kontiná ezali boni ?",
+          options: ["5", "6", "7", "8"],
+          answer: 2
+        },
+        {
+          question: "Nani akomi 'Les Misérables' ?",
+          options: ["Victor Hugo", "Albert Camus", "Émile Zola", "Jean-Paul Sartre"],
+          answer: 0
+        }
+      ]
+    };
+
+    let currentQuestion = 0;
+    let score = 0;
+    let currentLanguage = "fr";  // Langue par défaut
+
+    // Fonction pour afficher le quiz après l'animation de bienvenue
+    function showQuiz() {
+      document.getElementById("welcome").style.display = "none";
+      document.querySelector(".container").style.display = "block";
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const questionEl = document.getElementById("question");
+      const options = document.querySelectorAll(".option");
+
+      questionEl.textContent = questions[currentLanguage][currentQuestion].question;
+      options.forEach((option, index) => {
+        option.textContent = questions[currentLanguage][currentQuestion].options[index];
+      });
+
+      document.getElementById("result").textContent = "";
+    }
+
+    function checkAnswer(selectedOption) {
+      const resultEl = document.getElementById("result");
+      if (selectedOption === questions[currentLanguage][currentQuestion].answer) {
+        resultEl.textContent = currentLanguage === "fr" ? "Bonne réponse !" : "Eyano ya solo!";
+        resultEl.style.color = "green";
+        score++;
+      } else {
+        resultEl.textContent = currentLanguage === "fr" ? "Mauvaise réponse." : "Eyano ya lokuta.";
+        resultEl.style.color = "red";
+      }
+      document.getElementById("score").textContent = currentLanguage === "fr" ? `Score: ${score}` : `Nzela: ${score}`;
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < questions[currentLanguage].length) {
+        loadQuestion();
+      } else {
+        document.getElementById("question").textContent = currentLanguage === "fr" ? "Quiz terminé !" : "Quiz esili!";
+        document.querySelectorAll(".option").forEach(option => option.style.display = "none");
+        document.getElementById("result").textContent = currentLanguage === "fr"
+          ? `Ton score final est de ${score} sur ${questions[currentLanguage].length}.`
+          : `Nzela na yo ya suka ezali ${score} kati na ${questions[currentLanguage].length}.`;
+        document.getElementById("score").textContent = "";
+        document.getElementById("next-question").style.display = "none";
+      }
+    }
+
+    function changeLanguage() {
+      currentLanguage = document.getElementById("language").value;
+      document.getElementById("title").textContent = currentLanguage === "fr" ? "Quiz de culture générale" : "Quiz ya mayele ya mokili";
+      document.getElementById("next-question").textContent = currentLanguage === "fr" ? "Question suivante" : "Motuna elandi";
+      score = 0;
+      currentQuestion = 0;
+      document.querySelectorAll(".option").forEach(option => option.style.display = "block");
+      document.getElementById("next-question").style.display = "inline";
+      loadQuestion();
+    }
+
+    // Fonction pour jouer le son de clic
+    function playSound() {
+      document.getElementById("click-sound").play();
+    }
+
+    // Charger le quiz après l'animation de bienvenue
+    setTimeout(showQuiz, 3000);
+  </script>
+</body>
+</html>
+
+
+
